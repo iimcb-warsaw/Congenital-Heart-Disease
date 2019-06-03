@@ -1,0 +1,57 @@
+Step 1: Download the genomes of human and zerbafish 
+
+rsync -av rsync://ftp.ensembl.org/ensembl/pub/release-96/fasta/danio_rerio/dna/Danio_rerio.GRCz11.dna_sm.toplevel.fa.gz .
+
+rsync -av rsync://ftp.ensembl.org/ensembl/pub/release-96/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna_sm.toplevel.fa.gz .
+
+Note: '.' means storing the files in the current directory.
+
+Step 2: Extracting the compressed files
+
+tar -xzvf Danio_rerio.GRCz11.dna_sm.toplevel.fa.gz
+tar -xzvf Homo_sapiens.GRCh38.dna_sm.toplevel.fa.gz
+
+
+Step 3: Download the stable MUMer distro 4 from https://github.com/gmarcais/mummer
+
+ or Type onto the terminal
+
+ wget https://github.com/mummer4/mummer/releases/download/v4.0.0beta2/mummer-4.0.0beta2.tar.gz
+ 
+ Step 4: Mummer4 Installation
+ 
+ ### extract the package ###########
+ $ tar -xvzf mummer-4.0.0beta2.tar.gz
+ 
+ $ ./configure --prefix=/path/where-to-install/
+ $ cd Mummer4
+ $ make check
+ $ make install CPPFLAGS="-O3 -DSIXTYFOURBITS"
+ $ mummerpath=/mnt/isihome/svashisht/mummer4/mummer-4.0.0beta2
+ $ cd ..
+ $ export PATH=$mergerpath:$mummerpath:$PATH
+ $ echo $PATH
+ 
+ or adding path permanently
+ 
+ $ vi .profile
+ press insert
+ mummerpath=/mnt/isihome/svashisht/mummer4/mummer-4.0.0beta2
+ export PATH=$mergerpath:$mummerpath:$PATH
+ press esc and type :wq
+ $ source ~/.profile
+ 
+ Step 5: Running Mummer4 after successful installation
+ 
+ Usage: nucmer [options] ref:path qry:path+ ### "nucmer" for pairwise alignment of nucleotide sequences.
+
+ qrsh -q ngs.q nucmer --threads=8 --maxmatch --prefix=/path/to/outputFile/hg38_ZF11 /path/to/target-genome/Homo_sapiens.GRCh38.dna_sm.toplevel.fa \
+/path/to/query-genome/Danio_rerio.GRCz11.dna_sm.toplevel.fa
+
+
+
+ 
+ 
+ 
+ 
+ 
