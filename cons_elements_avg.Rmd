@@ -1,0 +1,204 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+
+```{r}
+ 
+setwd("~/svashisht/genomes_complete/ensembl/hsap_grch38.v.drer_grcz11.lastz_net/chromBychrom/bed_files/phasCons")
+
+files<-list.files(pattern="chr[0-9]+_phast",all.files=F)
+
+chrs<-sapply(strsplit(files,"_"),head,n=1)
+
+for (j in 7:length(files)){
+  
+dat<- read.table(files[j],stringsAsFactors = F, header=F,sep = "\t")
+element<-c()
+cat(j,"\n")
+N=nrow(dat)-1
+res<- data.frame(chr=rep("", N),start=rep(NA, N), end=rep(NA, N),avg=rep(NA,N),stringsAsFactors=FALSE)
+
+for (i in 1:N){
+    if(dat$V3[i] == dat$V2[i+1]) 
+     {   
+          tmp <- dat[i,]
+          element<-rbind(element,tmp) 
+          
+		      element1<-rbind(element,dat[i+1,])
+		      
+            } else if (dat$V3[i] != dat$V2[i+1]) {
+         res[i,1]<-chrs[j]
+         res$start[i]<-head(element1$V2,n=1) 
+         res$end[i]<-dat$V3[i]
+         res$avg[i]<-mean(element1$V5)
+         res<-na.omit(res)
+         element<-NULL
+         cat(i,"\n")
+     }
+  }
+
+length_Ele=res[,3]-res[,2]+2
+res$length_Ele<-length_Ele
+filename=paste(chrs[j],"_ConsElemt_phastCons.bed",sep="")
+write.table(res,filename,col.names = F,row.names = F,sep="\t",quote = F)
+
+}
+
+```
+
+```{r}
+#setwd("~/svashisht/genomes_complete/ensembl/hsap_grch38.v.drer_grcz11.lastz_net/chromBychrom/bed_files/phasCons")
+setwd("~/svashisht/genomes_complete/ensembl/hsap_grch38.v.drer_grcz11.lastz_net/chromBychrom/bed_files/phyloP")
+
+#files<-list.files(pattern="chr[0-9]+_phast",all.files=F)
+files<-list.files(pattern="chr[0-9]+_phyloPs",all.files=F)
+
+chrs<-sapply(strsplit(files,"_"),head,n=1)
+
+for (j in 1:length(files)){
+  j=5
+dat<- read.table(files[j],stringsAsFactors = F, header=F,sep = "\t")
+element<-c()
+cat(j,"\n")
+N=nrow(dat)-1
+#N=nrow(dat)
+#N= 27028
+res<- data.frame(chr=rep("", N),start=rep(NA, N), end=rep(NA, N),avg=rep(NA,N),stringsAsFactors=FALSE)
+
+for (i in 1:N){
+    if(dat$V3[i] == dat$V2[i+1]) 
+     {   
+          tmp <- dat[i,]
+          element<-rbind(element,tmp) 
+          
+		      element1<-rbind(element,dat[i+1,])
+		      
+            } else if (dat$V3[i] != dat$V2[i+1]) {
+         res[i,1]<-chrs[j]
+         res$start[i]<-head(element1$V2,n=1) 
+         res$end[i]<-dat$V3[i]
+         res$avg[i]<-mean(element1$V5)
+         res<-na.omit(res)
+         element<-NULL
+         cat(i,"\n")
+     }
+  }
+
+length_Ele=res[,3]-res[,2]+2
+res$length_Ele<-length_Ele
+filename=paste(chrs[j],"_ConsElemt_phylop.bed",sep="")
+write.table(res,filename,col.names = F,row.names = F,sep="\t",quote = F)
+
+}
+
+```
+
+```{bash}
+
+# phastCons 
+
+cd ~/svashisht/genomes_complete/ensembl/hsap_grch38.v.drer_grcz11.lastz_net/chromBychrom/bed_files/phasCons
+
+ls | egrep "chr[0-9]+_ConsElemt_*" | sort -V | xargs cat > PhastCons_elements_allChrs.bed
+
+
+bedtools intersect -wo -a /home/svashisht/svashisht/GWAS_catalog_CHD_SNP_analysis/human_ortho_zebrafish.bed -b    PhastCons_elements_allChrs.bed > AllchrPhastConsElementsIntrsct_GWASOrtho.bed
+
+bedtools intersect -wo -a /home/svashisht/svashisht/GWAS_catalog_CHD_SNP_analysis/human_no-ortho_zebrafish.bed -b  PhastCons_elements_allChrs.bed > AllchrPhastConsElementsIntrsct_GWAS_no-Ortho.bed
+
+sort -u AllchrPhastConsElementsIntrsct_GWASOrtho.bed > AllchrPhastConsElementsIntrsct_GWASOrtho_Unique.bed
+
+sort -u AllchrPhastConsElementsIntrsct_GWAS_no-Ortho.bed > AllchrPhastConsElementsIntrsct_GWAS_no-Ortho_Unique.bed  
+
+# phyloP
+
+cd ~/svashisht/genomes_complete/ensembl/hsap_grch38.v.drer_grcz11.lastz_net/chromBychrom/bed_files/phyloP
+
+ls | egrep "chr[0-9]+_ConsElemt_*" | sort -V | xargs cat > PhyloPCons_elements_allChrs.bed
+
+bedtools intersect -wo -a /home/svashisht/svashisht/GWAS_catalog_CHD_SNP_analysis/human_ortho_zebrafish.bed -b    PhyloPCons_elements_allChrs.bed > AllchrPhyloPConsElementsIntrsct_GWASOrtho.bed
+
+bedtools intersect -wo -a /home/svashisht/svashisht/GWAS_catalog_CHD_SNP_analysis/human_no-ortho_zebrafish.bed -b PhyloPCons_elements_allChrs.bed > AllchrPhyloPConsElementsIntrsct_GWAS_no-Ortho.bed
+
+sort -u AllchrPhyloPConsElementsIntrsct_GWASOrtho.bed > AllchrPhyloPConsElementsIntrsct_GWASOrtho_Unique.bed
+
+sort -u AllchrPhyloPConsElementsIntrsct_GWAS_no-Ortho.bed > AllchrPhyloPConsElementsIntrsct_GWAS_no-Ortho_Unique.bed
+
+```
+
+```{r}
+# extending the window-size for GWAS-CHD-SNPs with ortho and no-ortho 
+
+# windows size (+- 50bp, +- 30bp and +- 10bp)
+# human-zebrafish ortho
+setwd("/home/svashisht/svashisht/GWAS_catalog_CHD_SNP_analysis")
+ortho<- read.table("human_ortho_zebrafish.bed",header=F,stringsAsFactors=F)
+
+ortho_50<- data.frame(V1=ortho$V1,V2=ortho$V2-50,V3=ortho$V2+50,V4=ortho$V4,V5=ortho$V5,V6=ortho$V6)
+write.table(ortho_50,"human_Zebrafish_Ortho_50.bed",sep="\t",quote=F,row.names = F,col.names = F)
+
+ortho_30<- data.frame(V1=ortho$V1,V2=ortho$V2-30,V3=ortho$V2+30,V4=ortho$V4,V5=ortho$V5,V6=ortho$V6)
+write.table(ortho_30,"human_Zebrafish_Ortho_30.bed",sep="\t",quote=F,row.names = F,col.names = F)
+
+ortho_10<- data.frame(V1=ortho$V1,V2=ortho$V2-10,V3=ortho$V2+10,V4=ortho$V4,V5=ortho$V5,V6=ortho$V6)
+write.table(ortho_10,"human_Zebrafish_Ortho_10.bed",sep="\t",quote=F,row.names = F,col.names = F)
+
+##
+# human-zebrafish no-ortho
+no_ortho<- read.table("human_no-ortho_zebrafish.bed",header=F,stringsAsFactors=F)
+
+no_ortho_50<- data.frame(V1=no_ortho$V1,V2=no_ortho$V2-50,V3=no_ortho$V2+50,V4=no_ortho$V4,V5=no_ortho$V5,V6=no_ortho$V6)
+write.table(no_ortho_50,"human_Zebrafish_no-Ortho_50.bed",sep="\t",quote=F,row.names = F,col.names = F)
+ 
+no_ortho_30<- data.frame(V1=no_ortho$V1,V2=no_ortho$V2-30,V3=no_ortho$V2+30,V4=no_ortho$V4,V5=no_ortho$V5,V6=no_ortho$V6)
+write.table(no_ortho_30,"human_Zebrafish_no-Ortho_30.bed",sep="\t",quote=F,row.names = F,col.names = F)
+
+no_ortho_10<- data.frame(V1=no_ortho$V1,V2=no_ortho$V2-10,V3=no_ortho$V2+10,V4=no_ortho$V4,V5=no_ortho$V5,V6=no_ortho$V6)
+write.table(no_ortho_10,"human_Zebrafish_no-Ortho_10.bed",sep="\t",quote=F,row.names = F,col.names = F)
+```
+
+```{r}
+files<-list.files(pattern="*GWASOrtho_uniq_[0-9]+|*GWASOrtho_Unique.bed")
+#files<-list.files(pattern="*GWAS_no-Ortho_uniq_[0-9]+|*GWASOrtho_Unique.bed")
+winSize<-c("winSize-10","winSize-30","winSize-50","winSize-0")
+allFiles<- c()
+
+for (i in 1:length(files)){
+  
+  r<-read.table(files[i],stringsAsFactors = F,header = F)
+  r$V13<-rep(winSize[i],times=nrow(r))
+  allFiles<- rbind(allFiles,r)
+}
+allFiles$V14<-rep("hgDnrer-Ortho",time=nrow(allFiles)) 
+write.table(allFiles,"AllchrPhloPConsElesIntrsct_GWASOrtho_uniq_win0-50_combined.bed",row.names = F,col.names = F,quote = F,sep="\t")
+
+orthoPhast<-allFiles
+no_orthoPhast<-allFiles
+
+comb<-rbind(orthoPhast,no_orthoPhast)
+comb<-cbind(comb[c(1:6,8:14)])
+n<-c("chrom","start","end","GWAS-SNP","Risk_allele","P-logMod","start","end","phastCons_score","Cons_eleSize","Overlap_bps","WinSize","Ortho/no-Ortho")
+colnames(comb)<-n
+
+write.table(comb,"AllchrPhyloPConsElesIntrsct_GWAS_No-ortho-ortho_uniq_win0-50_comb.bed",row.names = F,col.names = T,quote = F,sep="\t")
+
+```
+
+```{bash}
+
+# anchora db intersection with our results
+
+bedtools intersect -wo -a ~/svashisht/genomes_complete/ensembl/hsap_grch38.v.drer_grcz11.lastz_net/chromBychrom/bed_files/phasCons/AllchrPhastConsElesIntrsct_GWAS_No-ortho-ortho_uniq_win0-50_comb.bed -b  > AllchrPhyloPConsElementsIntrsct_GWASOrtho.bed
+
+```
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
